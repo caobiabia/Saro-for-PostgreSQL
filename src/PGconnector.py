@@ -1,5 +1,22 @@
+import json
 import time
 import psycopg2
+
+
+def read_sql_file(file_path):
+    """
+    读取 SQL 文件中的查询。
+
+    :param file_path: SQL 文件的路径
+    :return: 文件中的 SQL 查询字符串
+    """
+    try:
+        with open(file_path, 'r') as file:
+            sql = file.read()
+        return sql
+    except IOError as e:
+        print(f"Error reading SQL file {file_path}: {e}")
+        return None
 
 
 class PostgresDB:
@@ -39,7 +56,7 @@ class PostgresDB:
             with self.connection.cursor() as cursor:
                 cursor.execute(query)
                 self.connection.commit()
-                print("Query executed successfully.")
+                # print("Query executed successfully.")
                 return cursor.fetchall() if cursor.description else None
         except psycopg2.Error as e:
             print(f"Error executing query: {e}")
@@ -50,21 +67,58 @@ class PostgresDB:
             print("No active database connection.")
             return None
 
-        try:
-            with open(file_path, 'r') as file:
-                sql = file.read()
+        sql = read_sql_file(file_path)
+        if not sql:
+            print(f"Failed to read SQL file: {file_path}")
+            return None
 
+        try:
             with self.connection.cursor() as cursor:
                 start_time = time.time()
                 cursor.execute(sql)
                 self.connection.commit()
                 end_time = time.time()
                 elapsed_time = end_time - start_time
-                print(f"Executed SQL file {file_path} successfully.")
-                print(f"Execution time: {elapsed_time:.2f} seconds.")
+                # print(f"Executed SQL file {file_path} successfully.")
+                # print(f"Execution time: {elapsed_time:.2f} seconds.")
                 return cursor.fetchall() if cursor.description else None
         except (psycopg2.Error, IOError) as e:
             print(f"Error executing SQL file: {e}")
+
+    def get_execution_plan(self, query):
+        """
+        获取查询的物理执行计划，并以 JSON 格式返回。
+
+        :param query: 要执行的查询
+        :return: 查询的执行计划（JSON 格式）
+        """
+        if not self.connection:
+            print("No active database connection.")
+            return None
+
+        try:
+            explain_query = f"EXPLAIN (FORMAT JSON) {query}"
+            with self.connection.cursor() as cursor:
+                cursor.execute(explain_query)
+                execution_plan = cursor.fetchall()
+            return execution_plan[0][0] if execution_plan else None
+        except psycopg2.Error as e:
+            print(f"Error getting execution plan: {e}")
+            return None
+
+    def get_execution_plan_from_file(self, file_path):
+        """
+        从 SQL 文件中获取查询的物理执行计划（JSON 格式）。
+
+        :param file_path: SQL 文件的路径
+        :return: 查询的执行计划（JSON 格式）
+        """
+        query = read_sql_file(file_path)
+        if query:
+            return self.get_execution_plan(query)
+        else:
+            print(f"Failed to read SQL file: {file_path}")
+            return None
 
 
 # PG_CONNECTION_STR_JOB = {
@@ -73,11 +127,18 @@ class PostgresDB:
 #     "password": "postgres",
 #     "port": 5432
 # }
-#
+
+# # 创建数据库对象并连接
 # db_job = PostgresDB(**PG_CONNECTION_STR_JOB)
 # db_job.connect()
 #
+# # 从 SQL 文件中获取查询的物理执行计划（JSON 格式）
 # sql_file_path = r"D:\Saro\datasets\JOB\1a.sql"
-# result = db_job.execute_sql_file(sql_file_path)
-# if result:
-#     print(result)
+# execution_plan = db_job.get_execution_plan_from_file(sql_file_path)
+#
+# if execution_plan:
+#     # 打印格式化的 JSON 执行计划
+#     print(json.dumps(execution_plan, indent=2))
+#
+# # 关闭连接
+# db_job.close()

@@ -104,13 +104,13 @@ def mkdir(file_path):
         os.makedirs(file_path)
 
 
-def make_print_to_file(path, execute=0):
-    '''
+def make_print_to_file(path):
+    """
     example:
-    use make_print_to_file() , and the all the information of funtion print , will be write in to a log file
+    use make_print_to_file() , and the all the information of function print , will be written in to a log file
     :param path: the path to save print information
     :return: none
-    '''
+    """
     mkdir(path)
 
     class Logger(object):

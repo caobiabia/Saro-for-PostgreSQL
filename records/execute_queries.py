@@ -16,10 +16,25 @@ import json
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from db_util import *
 from src.argument import *
-
+from src.PGconnector import PostgresDB
 NUM_HINT_SET = 49  # 48 hint sets + 1 PG default
 
+def arm_idx_to_hints_v2(arm_idx):
+    hints = []
+    for option in _ALL_OPTIONS:
+        hints.append(f"SET {option} TO off")
 
+    if -1 < arm_idx < 48:
+        for i in all_48_hint_sets[arm_idx]:
+            hints.append(f"SET {i} TO on")
+
+    elif arm_idx == 48:
+        for option in _ALL_OPTIONS:
+            hints.append(f"SET {option} TO on")  # default PG setting
+    else:
+        print('48 hint set error')
+        exit(0)
+    return hints
 def file_exist(saved_files, sql_id):
     saved_ids = []
     for i in saved_files:

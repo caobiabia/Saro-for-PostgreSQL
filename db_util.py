@@ -137,6 +137,9 @@ def arm_idx_to_hints_v2(arm_idx):
     return hints
 
 
+print(arm_idx_to_hints_v2(1))
+
+
 def run_query(sql):
     '''
     input: a string SQL and two Bao settings
