@@ -74,13 +74,8 @@ class PostgresDB:
 
         try:
             with self.connection.cursor() as cursor:
-                start_time = time.time()
                 cursor.execute(sql)
                 self.connection.commit()
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                # print(f"Executed SQL file {file_path} successfully.")
-                # print(f"Execution time: {elapsed_time:.2f} seconds.")
                 return cursor.fetchall() if cursor.description else None
         except (psycopg2.Error, IOError) as e:
             print(f"Error executing SQL file: {e}")

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from src.argument import args
-from src.featurize import TreeFeaturizer
+from src.featurizer import TreeFeaturizer
 
 
 def pre_evaluate_process(plans):
