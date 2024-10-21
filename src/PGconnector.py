@@ -1,6 +1,7 @@
 import json
 import time
 import psycopg2
+import re
 
 
 def read_sql_file(file_path):
@@ -115,25 +116,82 @@ class PostgresDB:
             print(f"Failed to read SQL file: {file_path}")
             return None
 
+    @staticmethod
+    def extract_table_names(sql_query):
+        # 改进正则表达式，捕获 FROM, JOIN, INTO, UPDATE 后的表名
+        # 排除 SQL 函数或常见关键字
+        regex = r"(FROM|JOIN|INTO|UPDATE)\s+([`'\[\"]?[\w\.]+[`'\]\"]?)|(?:,)\s*([`'\[\"]?[\w\.]+[`'\]\"]?)"
 
-# PG_CONNECTION_STR_JOB = {
-#     "dbname": "imdbload",
-#     "user": "postgres",
-#     "password": "postgres",
-#     "port": 5432
-# }
+        # 常见的SQL聚合函数和关键字列表
+        sql_keywords = {
+            'SELECT', 'WHERE', 'GROUP', 'ORDER', 'BY', 'MIN', 'MAX', 'COUNT', 'AVG', 'SUM',
+            'DISTINCT', 'ON', 'AND', 'OR', 'NOT', 'AS', 'DESC', 'ASC', 'LEFT', 'RIGHT', 'INNER',
+            'OUTER', 'FULL', 'JOIN', 'UNION', 'EXISTS', 'IN', 'LIKE', 'BETWEEN', 'HAVING', 'LIMIT',
+            'OFFSET', 'TOP', 'DISTINCT', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'ALL', 'ANY', 'INTO',
+            'INSERT', 'UPDATE', 'DELETE', 'FROM', 'VALUES'
+        }
 
-# # 创建数据库对象并连接
-# db_job = PostgresDB(**PG_CONNECTION_STR_JOB)
-# db_job.connect()
-#
-# # 从 SQL 文件中获取查询的物理执行计划（JSON 格式）
-# sql_file_path = r"D:\Saro\datasets\JOB\1a.sql"
-# execution_plan = db_job.get_execution_plan_from_file(sql_file_path)
-#
-# if execution_plan:
-#     # 打印格式化的 JSON 执行计划
-#     print(json.dumps(execution_plan, indent=2))
-#
-# # 关闭连接
-# db_job.close()
+        # 查找所有匹配的表名
+        matches = re.findall(regex, sql_query, re.IGNORECASE)
+
+        # 提取所有可能的表名
+        table_names = set()
+        for match in matches:
+            # 表名可能出现在第二个或第三个捕获组
+            table_name = match[1] if match[1] else match[2]
+            if table_name:
+                # 清理表名去掉可能的包裹符号（`'`、`"`、[] 等）
+                cleaned_table_name = re.sub(r"[`'\[\]\"]", "", table_name)
+                # 排除SQL关键字
+                if cleaned_table_name.upper() not in sql_keywords:
+                    table_names.add(cleaned_table_name)
+
+        return list(table_names)
+
+    def get_table_cardinalities(self, tables):
+        # 将表名转换为SQL中的IN查询
+        table_names_str = ', '.join([f"'{table}'" for table in tables])
+        query = f"""
+        SELECT relname AS table_name, reltuples AS row_count
+        FROM pg_class
+        WHERE relname IN ({table_names_str});
+        """
+        result = self.execute_query(query)
+
+        # 返回表名和基数的字典
+        if result:
+            table_cardinalities = {row[0]: row[1] for row in result}
+            return table_cardinalities
+        return {}
+
+
+if __name__ == "__main__":
+    PG_CONNECTION_STR_JOB = {
+        "dbname": "imdbload",
+        "user": "postgres",
+        "password": "postgres",
+        "port": 5432
+    }
+
+    # 创建数据库对象并连接
+    db_job = PostgresDB(**PG_CONNECTION_STR_JOB)
+    db_job.connect()
+
+    # 从 SQL 文件中获取查询的物理执行计划（JSON 格式）
+    sql_file_path = r"D:\Saro\datasets\JOB\1a.sql"
+    sql = read_sql_file(sql_file_path)
+
+    start_time = time.time()
+    # 提取表名
+    table_names = db_job.extract_table_names(sql)
+    print("Extracted table names:", table_names)  # 输出提取到的表名
+
+    # 获取表的基数
+    table_cardinalities = db_job.get_table_cardinalities(table_names)
+    print("Table cardinalities:", table_cardinalities)  # 输出表名及其基数
+    end_time = time.time()
+    time = end_time - start_time
+    print("exe time:", time)
+    # 关闭连接
+    db_job.close()
+

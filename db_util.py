@@ -77,7 +77,6 @@ indexscan,nestloop,seqscan
 mergejoin,nestloop,seqscan
 mergejoin,seqscan
 nestloop,seqscan'''
-
 all_48_hint_sets = all_48_hint_sets.split('\n')
 all_48_hint_sets = [["enable_" + j for j in i.split(',')] for i in all_48_hint_sets]
 

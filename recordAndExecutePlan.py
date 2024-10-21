@@ -1,3 +1,20 @@
+"""
+执行SQL后的字典结构
+plans_dict = {
+    "file_name_1": [
+        {"plan": plan_1, "time": execution_time_1},
+        {"plan": plan_2, "time": execution_time_2},
+        ...
+    ],
+    "file_name_2": [
+        {"plan": plan_3, "time": execution_time_3},
+        {"plan": plan_4, "time": execution_time_4},
+        ...
+    ],
+    ...
+}
+"""
+
 import logging
 import os
 import pickle
@@ -5,9 +22,11 @@ import time
 
 from tqdm import tqdm
 
-from src.PGconnector import PostgresDB
+from src.PGconnector import PostgresDB, read_sql_file
 from src.config import get_args
 from src.utils import list_files_in_directory
+from src.utils.card_picker import CardPicker
+from src.utils.card_replacer import PlanCardReplacer
 
 args = get_args()
 
@@ -188,6 +207,64 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
 
     # 关闭数据库连接
     db_job.close()
+
+
+def recordAndExecuteExecutionPlans(DBParam, sqlPath, save_path="plans_dict_job.pkl"):
+    # 从文件加载已有的 plans_dict
+    plans_dict = load_plans_dict(save_path)
+
+    # 创建数据库对象并连接
+    db_job = PostgresDB(**DBParam)
+    db_job.connect()
+
+    if not db_job.connection:
+        logging.error("Failed to connect to the database.")
+        return
+
+    sql_files = list_files_in_directory(sqlPath)
+
+    for sql_file in sql_files:
+        file_name = os.path.basename(sql_file)
+        base_query = read_sql_file(sql_file)
+
+        # 提取表名和表的基数
+        table_arr = db_job.extract_table_names(base_query)
+        rows_arr = db_job.get_table_cardinalities(table_arr)
+        # 使用 CardPicker 和 PlanCardReplacer 进行基数调整
+        card_picker = CardPicker(rows_arr, table_arr)
+        adjusted_cards = card_picker.get_card_list()
+        print(adjusted_cards)
+        # 假设 PlanCardReplacer 是一个处理物理执行计划的类
+        plan_card_replacer = PlanCardReplacer(base_query, card_picker)
+
+        for card in tqdm(range(len(adjusted_cards)), desc=f"Processing {file_name}", unit="arm"):
+            # 调整基数以生成新的执行计划
+
+            plan = plan_card_replacer.replace(adjusted_cards)
+
+            # 执行生成的计划
+            start_time = time.time()  # 记录开始时间
+            try:
+                db_job.execute_query("BEGIN;")  # 开始新的事务
+                db_job.execute_query("SET statement_timeout TO 180000")  # 增加超时时间
+                db_job.execute_query(plan)  # 执行 SQL 查询
+                db_job.execute_query("COMMIT;")  # 提交事务
+            except Exception as e:
+                logging.error(f"Error executing plan: {e}")
+                db_job.execute_query("ROLLBACK;")  # 回滚事务
+                continue  # 继续处理下一个计划
+            finally:
+                end_time = time.time()  # 记录结束时间
+                execution_time = end_time - start_time  # 计算执行时间
+
+                # 添加到 plans_dict 中
+                plans_dict[file_name].append({"plan": plan, "time": execution_time})
+
+                # 每次更新 plans_dict 后都保存到文件
+                save_plans_dict(plans_dict, save_path)
+
+        # 关闭数据库连接
+        db_job.close()
 
 
 if __name__ == '__main__':

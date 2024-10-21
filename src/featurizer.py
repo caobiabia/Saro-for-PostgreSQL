@@ -236,6 +236,10 @@ def _attach_buf_data(tree):
     recurse(tree["Plan"])
 
 
+def num_operators():
+    return len(ALL_TYPES)
+
+
 class TreeFeaturizer:
     def __init__(self):
         self.__tree_builder = None
@@ -251,6 +255,3 @@ class TreeFeaturizer:
         for t in trees:
             _attach_buf_data(t)
         return [self.__tree_builder.plan_to_feature_tree(x["Plan"]) for x in trees]
-
-    def num_operators(self):
-        return len(ALL_TYPES)

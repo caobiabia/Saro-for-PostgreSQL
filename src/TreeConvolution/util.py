@@ -80,7 +80,7 @@ def _preorder_indexes(root, left_child, right_child, idx=1):
     right_subtree = _preorder_indexes(right_child(root), left_child, right_child,
                                       idx=max_index_in_left + 1)
 
-    return (idx, left_subtree, right_subtree)
+    return idx, left_subtree, right_subtree
 
 
 def _tree_conv_indexes(root, left_child, right_child):
@@ -156,4 +156,4 @@ def prepare_trees(trees, transformer, left_child, right_child, cuda=False):
     if cuda:
         indexes = indexes.cuda()
 
-    return (flat_trees, indexes)
+    return flat_trees, indexes
