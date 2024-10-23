@@ -1,0 +1,1 @@
+select  count(*) from postHistory as ph,          posts as p,  		users as u,  		badges as b  where u.Id = p.OwnerUserId 	and p.OwnerUserId = ph.UserId 	and ph.UserId = b.UserId  AND b.Date>='2010-09-02 21:29:07'::timestamp  AND ph.PostHistoryTypeId=2  AND p.AnswerCount<=10  AND p.FavoriteCount>=0;

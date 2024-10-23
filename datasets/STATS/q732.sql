@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		votes as v where c.UserId = v.UserId  AND v.VoteTypeId=2  AND v.CreationDate>='2009-02-08 00:00:00'::timestamp  AND v.CreationDate<='2014-09-11 00:00:00'::timestamp;

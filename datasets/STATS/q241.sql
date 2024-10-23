@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,  		postLinks as pl where  c.UserId = p.OwnerUserId 	and p.Id = pl.PostId  AND pl.CreationDate>='2010-09-07 22:20:44'::timestamp  AND pl.CreationDate<='2014-08-21 18:55:24'::timestamp  AND p.Score<=15;

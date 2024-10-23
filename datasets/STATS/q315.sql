@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          postLinks as pl,          votes as v,          badges as b,          users as u  where p.Id = c.PostId 	and p.Id = pl.RelatedPostId     and p.Id = v.PostId  	and u.Id = p.LastEditorUserId     and u.Id = b.UserId  AND u.Reputation>=1  AND u.UpVotes>=0  AND u.UpVotes<=15;

@@ -1,0 +1,1 @@
+select  count(*) from postLinks as pl,          posts as p,  		users as u,  		badges as b  where p.Id = pl.RelatedPostId  	and u.Id = p.OwnerUserId 	and u.Id = b.UserId  AND b.Date>='2010-07-20 19:07:26'::timestamp  AND pl.LinkTypeId=1  AND p.Score<=19  AND p.AnswerCount=0  AND p.CommentCount=0  AND p.FavoriteCount>=0  AND p.FavoriteCount<=7  AND u.UpVotes<=5;

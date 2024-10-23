@@ -1,0 +1,1 @@
+select  count(*) from votes as v,  		posts as p,          users as u where v.UserId = p.OwnerUserId 	and p.OwnerUserId = u.Id  AND p.CreationDate>='2010-08-05 11:59:25'::timestamp  AND p.CreationDate<='2014-09-04 15:31:00'::timestamp  AND u.Reputation>=1;

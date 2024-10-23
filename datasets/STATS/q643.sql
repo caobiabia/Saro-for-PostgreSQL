@@ -1,0 +1,1 @@
+select  count(*) from comments as c,          postHistory as ph,          users as u where u.Id = c.UserId 	and c.UserId = ph.UserId  AND c.CreationDate>='2010-07-19 21:35:25'::timestamp  AND u.DownVotes>=0;

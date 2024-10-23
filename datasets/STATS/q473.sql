@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          postHistory as ph where p.Id = c.PostId 	and p.Id = ph.PostId  AND c.CreationDate>='2010-08-05 10:28:07'::timestamp  AND c.CreationDate<='2014-09-11 20:58:35'::timestamp  AND p.Score>=-1  AND p.CommentCount<=16  AND p.CreationDate>='2010-07-21 05:45:43'::timestamp;

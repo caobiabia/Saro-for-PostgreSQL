@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,  		postLinks as pl,          postHistory as ph,          votes as v  where p.Id = c.PostId 	and p.Id = pl.PostId     and p.Id = ph.PostId     and p.Id = v.PostId  AND c.Score=0  AND c.CreationDate>='2010-07-22 09:54:23'::timestamp  AND pl.LinkTypeId=1  AND p.PostTypeId=1  AND p.AnswerCount<=4;

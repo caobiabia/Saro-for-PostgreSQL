@@ -1,0 +1,1 @@
+select  count(*) from postHistory as ph,          votes as v,  		users as u,  		badges as b  where u.Id = ph.UserId 	and u.Id = v.UserId 	and u.Id = b.UserId  AND ph.CreationDate>='2010-08-25 17:38:14'::timestamp  AND v.BountyAmount>=0;

@@ -1,0 +1,1 @@
+SELECT     COUNT(*) FROM     comments as c,     votes as v,     badges as b,     users as u WHERE     u.Id = c.UserId     AND u.Id = v.UserId     AND u.Id = b.UserId     AND c.Score = 2     AND c.CreationDate >= '2013-08-20 23:17:28' :: timestamp     AND u.CreationDate >= '2013-01-20 01:27:29' :: timestamp;

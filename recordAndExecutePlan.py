@@ -19,14 +19,13 @@ import logging
 import os
 import pickle
 import time
+from multiprocessing import Lock, Pool
 
 from tqdm import tqdm
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.PGconnector import PostgresDB, read_sql_file
 from src.config import get_args
 from src.utils import list_files_in_directory
-from src.utils.card_picker import CardPicker
-from src.utils.card_replacer import PlanCardReplacer
 
 args = get_args()
 
@@ -36,7 +35,12 @@ PG_CONNECTION_STR_JOB = {
     "password": "postgres",
     "port": 5432
 }
-
+PG_CONNECTION_STR_STATS = {
+    "dbname": "STATS",
+    "user": "postgres",
+    "password": "postgres",
+    "port": 5432
+}
 _ALL_OPTIONS = [
     "enable_nestloop", "enable_hashjoin", "enable_mergejoin",
     "enable_seqscan", "enable_indexscan", "enable_indexonlyscan"
@@ -136,6 +140,105 @@ def load_plans_dict(file_path):
         return {}
 
 
+lock = Lock()  # 创建进程锁
+
+
+def process_sql_file(args):
+    sql_file, ARMS, plans_dict, save_path, db_param = args
+    db_job = PostgresDB(**db_param)
+    db_job.connect()
+
+    if not db_job.connection:
+        logging.error(f"Failed to connect to the database for {sql_file}.")
+        return []
+
+    file_name = os.path.basename(sql_file)
+
+    # 检查计划列表
+    with lock:
+        if file_name in plans_dict and len(plans_dict[file_name]) >= ARMS:
+            logging.info(f"Skipping {file_name}, already processed.")
+            db_job.close()
+            return []
+
+        if file_name not in plans_dict:
+            plans_dict[file_name] = []
+
+    results = []
+
+    processed_arms = len(plans_dict[file_name])
+
+    for arm in range(processed_arms, ARMS):
+        hints = get_hints_by_arm_idx(arm)
+        plan = None
+
+        # 获取应用提示的执行计划
+        for hint in hints:
+            try:
+                db_job.execute_query("BEGIN;")  # 开始新的事务
+                db_job.execute_query(hint)  # 执行提示
+            except Exception as e:
+                logging.error(f"Error executing query hint: {e}")
+
+        # 获取执行计划
+        try:
+            plan = db_job.get_execution_plan_from_file(file_path=sql_file)
+            if plan is None:
+                plan = ["Plan Not Available"]  # 占位符
+            db_job.execute_query("COMMIT;")  # 提交事务
+        except Exception as e:
+            logging.error(f"Error getting execution plan: {e}")
+            plan = ["Plan Not Available"]  # 占位符
+            db_job.execute_query("ROLLBACK;")  # 回滚事务
+
+        # 获取应用提示的查询执行时间
+        start_time = time.time()  # 记录开始时间
+        try:
+            db_job.execute_query("BEGIN;")  # 开始新的事务
+            db_job.execute_query("SET statement_timeout TO 300000")  # 增加超时时间
+            db_job.execute_sql_file(sql_file)  # 执行 SQL 文件
+            db_job.execute_query("COMMIT;")  # 提交事务
+        except Exception as e:
+            logging.error(f"Error executing SQL file {file_name}: {e}")
+            db_job.execute_query("ROLLBACK;")  # 回滚事务
+            continue  # 继续处理下一个文件
+        finally:
+            end_time = time.time()  # 记录结束时间
+            execution_time = end_time - start_time  # 计算执行时间
+
+        # 添加到结果中
+        results.append({"file_name": file_name, "plan": plan[0], "time": execution_time})
+
+    db_job.close()  # 关闭数据库连接
+    return results
+
+
+def Mult_recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
+    # 从文件加载已有的 plans_dict
+    plans_dict = load_plans_dict(save_path)
+
+    sql_files = list_files_in_directory(sqlPath)
+
+    # 创建参数列表供进程池使用
+    pool_args = [(sql_file, ARMS, plans_dict, save_path, DBParam) for sql_file in sql_files]
+
+    with Pool() as pool:
+        results = list(tqdm(pool.imap(process_sql_file, pool_args), total=len(pool_args), desc="Processing SQL files"))
+
+    # 更新 plans_dict
+    with lock:
+        for result in results:
+            if result:
+                for entry in result:
+                    file_name = entry["file_name"]
+                    if file_name not in plans_dict:
+                        plans_dict[file_name] = []  # 确保初始化
+                    plans_dict[file_name].append({"plan": entry["plan"], "time": entry["time"]})
+
+    # 每次更新 plans_dict 后都保存到文件
+    save_plans_dict(plans_dict, save_path)
+
+
 def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
     # 从文件加载已有的 plans_dict
     plans_dict = load_plans_dict(save_path)
@@ -165,16 +268,17 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
 
         for arm in tqdm(range(processed_arms, ARMS), desc=f"Processing {file_name}", unit="arm"):
             hints = get_hints_by_arm_idx(arm)
+            plan = None
+            # ---------------------获取应用提示的执行计划---------------------------
             for hint in hints:
                 try:
+                    db_job.execute_query("BEGIN;")  # 开始新的事务
                     db_job.execute_query(hint)  # 执行提示
                 except Exception as e:
                     logging.error(f"Error executing query hint: {e}")
 
             # 获取执行计划
-            plan = None
             try:
-                db_job.execute_query("BEGIN;")  # 开始新的事务
                 plan = db_job.get_execution_plan_from_file(file_path=sql_file)
                 if plan is None:
                     plan = ["Plan Not Available"]  # 占位符
@@ -183,12 +287,14 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
                 logging.error(f"Error getting execution plan: {e}")
                 plan = ["Plan Not Available"]  # 占位符
                 db_job.execute_query("ROLLBACK;")  # 回滚事务
+            # ------------------------------------------------------------------
 
+            # ---------------------获取应用提示的查询执行时间-------------------------
             # 执行 SQL 文件
             start_time = time.time()  # 记录开始时间
             try:
                 db_job.execute_query("BEGIN;")  # 开始新的事务
-                db_job.execute_query("SET statement_timeout TO 180000")  # 增加超时时间
+                db_job.execute_query("SET statement_timeout TO 300000")  # 增加超时时间
                 db_job.execute_sql_file(sql_file)  # 执行 SQL 文件
                 db_job.execute_query("COMMIT;")  # 提交事务
             except Exception as e:
@@ -198,7 +304,7 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
             finally:
                 end_time = time.time()  # 记录结束时间
                 execution_time = end_time - start_time  # 计算执行时间
-
+                # -------------------------------------------------------------------
                 # 添加到 plans_dict 中
                 plans_dict[file_name].append({"plan": plan[0], "time": execution_time})
 
@@ -209,63 +315,5 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
     db_job.close()
 
 
-def recordAndExecuteExecutionPlans(DBParam, sqlPath, save_path="plans_dict_job.pkl"):
-    # 从文件加载已有的 plans_dict
-    plans_dict = load_plans_dict(save_path)
-
-    # 创建数据库对象并连接
-    db_job = PostgresDB(**DBParam)
-    db_job.connect()
-
-    if not db_job.connection:
-        logging.error("Failed to connect to the database.")
-        return
-
-    sql_files = list_files_in_directory(sqlPath)
-
-    for sql_file in sql_files:
-        file_name = os.path.basename(sql_file)
-        base_query = read_sql_file(sql_file)
-
-        # 提取表名和表的基数
-        table_arr = db_job.extract_table_names(base_query)
-        rows_arr = db_job.get_table_cardinalities(table_arr)
-        # 使用 CardPicker 和 PlanCardReplacer 进行基数调整
-        card_picker = CardPicker(rows_arr, table_arr)
-        adjusted_cards = card_picker.get_card_list()
-        print(adjusted_cards)
-        # 假设 PlanCardReplacer 是一个处理物理执行计划的类
-        plan_card_replacer = PlanCardReplacer(base_query, card_picker)
-
-        for card in tqdm(range(len(adjusted_cards)), desc=f"Processing {file_name}", unit="arm"):
-            # 调整基数以生成新的执行计划
-
-            plan = plan_card_replacer.replace(adjusted_cards)
-
-            # 执行生成的计划
-            start_time = time.time()  # 记录开始时间
-            try:
-                db_job.execute_query("BEGIN;")  # 开始新的事务
-                db_job.execute_query("SET statement_timeout TO 180000")  # 增加超时时间
-                db_job.execute_query(plan)  # 执行 SQL 查询
-                db_job.execute_query("COMMIT;")  # 提交事务
-            except Exception as e:
-                logging.error(f"Error executing plan: {e}")
-                db_job.execute_query("ROLLBACK;")  # 回滚事务
-                continue  # 继续处理下一个计划
-            finally:
-                end_time = time.time()  # 记录结束时间
-                execution_time = end_time - start_time  # 计算执行时间
-
-                # 添加到 plans_dict 中
-                plans_dict[file_name].append({"plan": plan, "time": execution_time})
-
-                # 每次更新 plans_dict 后都保存到文件
-                save_plans_dict(plans_dict, save_path)
-
-        # 关闭数据库连接
-        db_job.close()
-
-
 if __name__ == '__main__':
-    recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS)
+    Mult_recordAndExecuteSQL(PG_CONNECTION_STR_STATS, args.fp, args.ARMS, save_path=r"D:\Saro\records\plans_dict_stats.pkl")

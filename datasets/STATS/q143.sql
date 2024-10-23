@@ -1,0 +1,1 @@
+select  count(*) from postHistory as ph,          posts as p,  		votes as v,  		users as u  where p.Id = ph.PostId  	and u.Id = p.OwnerUserId 	and p.Id = v.PostId  AND ph.CreationDate>='2010-12-15 04:45:00'::timestamp  AND p.AnswerCount<=3  AND p.CommentCount>=0;

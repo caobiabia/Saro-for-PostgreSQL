@@ -1,0 +1,1 @@
+select  count(*) from posts as p,          tags as t,          votes as v  where p.Id = t.ExcerptPostId 	and p.OwnerUserId = v.UserId  AND p.CommentCount>=0  AND p.CommentCount<=18  AND v.VoteTypeId=2  AND v.CreationDate>='2010-07-19 00:00:00'::timestamp;

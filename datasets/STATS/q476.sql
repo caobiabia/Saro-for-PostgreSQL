@@ -1,0 +1,1 @@
+select  count(*) from comments as c,          votes as v,  		badges as b,  		users as u where u.Id  = c.UserId 	and u.Id = v.UserId 	and u.Id = b.UserId  AND u.Reputation>=1  AND u.Reputation<=143  AND u.DownVotes<=0  AND v.VoteTypeId=3;
