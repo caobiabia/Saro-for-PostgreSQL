@@ -29,7 +29,7 @@ DBParam = {
     "port": 5432
 }
 # 填写查询文件路径
-sql_path = r'.\datasets\STATS\q0.sql'
+sql_path = r'datasets/train/STATS\q0.sql'
 model_path = r'.\outputs\finetune.pt'
 
 # 创建调用Saro推理器

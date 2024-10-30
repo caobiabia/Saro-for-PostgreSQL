@@ -41,6 +41,12 @@ PG_CONNECTION_STR_STATS = {
     "password": "postgres",
     "port": 5432
 }
+PG_CONNECTION_STR_TPCH = {
+    "dbname": "tpchload",
+    "user": "postgres",
+    "password": "postgres",
+    "port": 5432
+}
 _ALL_OPTIONS = [
     "enable_nestloop", "enable_hashjoin", "enable_mergejoin",
     "enable_seqscan", "enable_indexscan", "enable_indexonlyscan"
@@ -104,7 +110,7 @@ log_file = os.path.join(log_dir, "SQLexecute.log")
 
 logging.basicConfig(
     filename=log_file,
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
@@ -171,30 +177,20 @@ def process_sql_file(args):
     for arm in range(processed_arms, ARMS):
         hints = get_hints_by_arm_idx(arm)
         plan = None
-
+        # 开始事务
+        db_job.execute_query("BEGIN;")
         # 获取应用提示的执行计划
         for hint in hints:
             try:
-                db_job.execute_query("BEGIN;")  # 开始新的事务
                 db_job.execute_query(hint)  # 执行提示
             except Exception as e:
                 logging.error(f"Error executing query hint: {e}")
 
         # 获取执行计划
-        try:
-            plan = db_job.get_execution_plan_from_file(file_path=sql_file)
-            if plan is None:
-                plan = ["Plan Not Available"]  # 占位符
-            db_job.execute_query("COMMIT;")  # 提交事务
-        except Exception as e:
-            logging.error(f"Error getting execution plan: {e}")
-            plan = ["Plan Not Available"]  # 占位符
-            db_job.execute_query("ROLLBACK;")  # 回滚事务
-
+        plan = db_job.get_execution_plan_from_file(file_path=sql_file)
         # 获取应用提示的查询执行时间
         start_time = time.time()  # 记录开始时间
         try:
-            db_job.execute_query("BEGIN;")  # 开始新的事务
             db_job.execute_query("SET statement_timeout TO 300000")  # 增加超时时间
             db_job.execute_sql_file(sql_file)  # 执行 SQL 文件
             db_job.execute_query("COMMIT;")  # 提交事务
@@ -216,13 +212,13 @@ def process_sql_file(args):
 def Mult_recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
     # 从文件加载已有的 plans_dict
     plans_dict = load_plans_dict(save_path)
-
     sql_files = list_files_in_directory(sqlPath)
 
     # 创建参数列表供进程池使用
     pool_args = [(sql_file, ARMS, plans_dict, save_path, DBParam) for sql_file in sql_files]
 
-    with Pool() as pool:
+    # 创建进程池，限制最多10个进程
+    with Pool(processes=5) as pool:
         results = list(tqdm(pool.imap(process_sql_file, pool_args), total=len(pool_args), desc="Processing SQL files"))
 
     # 更新 plans_dict
@@ -235,11 +231,17 @@ def Mult_recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.p
                         plans_dict[file_name] = []  # 确保初始化
                     plans_dict[file_name].append({"plan": entry["plan"], "time": entry["time"]})
 
-    # 每次更新 plans_dict 后都保存到文件
+            # 每处理完10个文件就保存一次
+            if len(plans_dict) % 10 == 0:
+                save_plans_dict(plans_dict, save_path)
+                logging.info(f"Saved plans_dict after processing {len(plans_dict)} files.")
+
+    # 最后一次保存
     save_plans_dict(plans_dict, save_path)
+    logging.info("Final save of plans_dict completed.")
 
 
-def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
+def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
     # 从文件加载已有的 plans_dict
     plans_dict = load_plans_dict(save_path)
 
@@ -316,4 +318,5 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path="plans_dict_job.pkl"):
 
 
 if __name__ == '__main__':
-    Mult_recordAndExecuteSQL(PG_CONNECTION_STR_STATS, args.fp, args.ARMS, save_path=r"D:\Saro\records\plans_dict_stats.pkl")
+    Mult_recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
+                             save_path=r"D:\Saro\records\plans_dict_train_JOB.pkl")

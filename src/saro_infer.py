@@ -47,7 +47,7 @@ class Saro_infer:
     def process_plans(self, plans):
         v_plans = pre_evaluate_process(plans)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.net = SATCNN_Extend(9).to(device)
+        self.net = SATCNN_Extend(10).to(device)
         self.net.load_state_dict(torch.load(self.model_path))
         self.net.eval()
         scores = self.net(v_plans)
@@ -94,11 +94,11 @@ if __name__ == '__main__':
         "port": 5432
     }
 
-    sql_path = r"D:\Saro\datasets\STATS\q0.sql"
+    sql_path = r"/datasets/train/STATS\q0.sql"
     model_path = r'D:\Saro\outputs\finetune.pt'
     saro_infer = Saro_infer(DBParam, sql_path, model_path)
 
-    # index, execution_time, result = saro_infer.run_inference()
-    # print(index, execution_time, result)
+    index, execution_time, result = saro_infer.run_inference()
+    print(index, execution_time, result)
     pg_time = saro_infer.cmp_to_pg()
     print(pg_time)
