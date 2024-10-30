@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,  		postHistory as ph,          votes as v,          users as u  where u.Id = c.UserId 	and c.UserId = p.OwnerUserId 	and p.OwnerUserId = ph.UserId 	and ph.UserId = v.UserId  AND c.Score=0  AND ph.PostHistoryTypeId=5  AND p.CommentCount>=0  AND p.CommentCount<=11  AND p.FavoriteCount>=0  AND u.Reputation=148  AND u.Views>=0;

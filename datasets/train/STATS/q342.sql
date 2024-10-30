@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,  		postLinks as pl,          postHistory as ph,          votes as v,          users as u  where p.Id = pl.PostId 	and p.Id = c.PostId 	and p.Id = ph.PostId 	and p.Id = v.PostId 	and u.Id = p.LastEditorUserId  AND p.PostTypeId=2  AND p.Score<=16  AND p.AnswerCount<=3  AND p.CommentCount<=11;

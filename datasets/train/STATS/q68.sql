@@ -1,0 +1,1 @@
+select  count(*) from postHistory as ph,          posts as p,  		votes as v,  		users as u  where p.Id = ph.PostId  	and u.Id = p.OwnerUserId 	and p.Id = v.PostId  AND p.AnswerCount<=5  AND u.Reputation>=1  AND u.Reputation<=7972  AND u.Views>=0  AND u.UpVotes>=0  AND v.VoteTypeId=2;

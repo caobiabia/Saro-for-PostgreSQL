@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          users as u where c.UserId = u.Id 	and u.Id = p.OwnerUserId  AND c.Score=0  AND p.PostTypeId=2  AND p.CommentCount<=15  AND u.Views<=58  AND u.DownVotes>=0  AND u.UpVotes>=0;

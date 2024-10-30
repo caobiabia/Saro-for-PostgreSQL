@@ -1,0 +1,1 @@
+select  count(*) from comments as c,          postLinks as pl,          posts as p,  		users as u,  		badges as b   where p.Id = pl.RelatedPostId 	and p.Id = c.PostId 	and u.Id = b.UserId 	and u.Id = p.OwnerUserId  AND c.Score=2  AND c.CreationDate<='2014-09-11 07:35:53'::timestamp;

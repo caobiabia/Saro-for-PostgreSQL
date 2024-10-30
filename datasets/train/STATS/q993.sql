@@ -1,0 +1,1 @@
+select  count(*) from badges as b, 		posts as p where b.UserId = p.OwnerUserId  AND b.Date>='2010-07-27 11:43:44'::timestamp  AND p.AnswerCount>=0  AND p.CreationDate>='2010-08-16 11:36:42'::timestamp  AND p.CreationDate<='2014-09-13 23:46:05'::timestamp;

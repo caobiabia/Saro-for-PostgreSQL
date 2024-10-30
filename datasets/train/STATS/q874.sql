@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          postLinks as pl,          postHistory as ph,          votes as v,          badges as b  where p.Id = c.PostId     and p.Id = pl.RelatedPostId     and p.Id = ph.PostId     and p.Id = v.PostId 	and b.UserId = c.UserId  AND ph.PostHistoryTypeId=5  AND ph.CreationDate<='2014-08-15 08:50:40'::timestamp  AND v.VoteTypeId=5;

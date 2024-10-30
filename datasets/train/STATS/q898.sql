@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          users as u where c.UserId = u.Id 	and u.Id = p.OwnerUserId  AND c.Score=0  AND p.CommentCount>=0  AND p.CommentCount<=10  AND p.FavoriteCount>=0  AND p.FavoriteCount<=7  AND p.CreationDate>='2010-07-28 18:05:11'::timestamp  AND u.CreationDate>='2010-07-20 07:04:04'::timestamp;

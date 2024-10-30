@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		postHistory as ph,          votes as v,  		users as u where u.Id  = v.UserId  	and v.UserId = ph.UserId  	and ph.UserId =c.UserId  AND ph.CreationDate>='2010-12-10 19:15:07'::timestamp  AND u.Views>=0  AND u.Views<=24  AND u.DownVotes<=2  AND v.VoteTypeId=2  AND v.BountyAmount>=0;

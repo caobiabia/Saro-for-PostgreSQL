@@ -1,0 +1,1 @@
+select  count(*) from postLinks as pl,          posts as p,  		users as u,  		badges as b  where p.Id = pl.RelatedPostId  	and u.Id = p.OwnerUserId 	and u.Id = b.UserId  AND p.Score>=-1  AND p.Score<=10;

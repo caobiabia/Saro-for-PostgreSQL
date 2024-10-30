@@ -1,0 +1,1 @@
+select  count(*) from comments as c,          votes as v,  		badges as b,  		users as u where u.Id  = c.UserId 	and u.Id = v.UserId 	and u.Id = b.UserId  AND u.UpVotes>=0  AND u.UpVotes<=31  AND v.VoteTypeId=2  AND v.BountyAmount<=200;

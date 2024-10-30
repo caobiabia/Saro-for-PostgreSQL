@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,  		votes as v,         users as u  where p.Id = c.PostId 	and p.Id = v.PostId 	and u.id = p.LastEditorUserId  AND p.Score>=-1  AND u.CreationDate<='2014-09-13 09:54:27'::timestamp  AND v.VoteTypeId=2  AND v.CreationDate>='2010-07-21 00:00:00'::timestamp;

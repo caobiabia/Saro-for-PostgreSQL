@@ -1,0 +1,1 @@
+select  count(*) from votes as v,          badges as b,         users as u where u.Id = v.UserId 	and v.UserId = b.UserId  AND b.Date>='2010-09-09 05:43:04'::timestamp  AND b.Date<='2014-09-12 14:56:35'::timestamp  AND u.Reputation>=1  AND u.Reputation<=249  AND v.VoteTypeId=2  AND v.BountyAmount>=0;

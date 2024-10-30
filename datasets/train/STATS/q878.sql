@@ -1,0 +1,1 @@
+select  count(*) from comments as c,  		posts as p,          users as u where c.UserId = u.Id 	and u.Id = p.OwnerUserId  AND c.CreationDate>='2010-08-16 19:20:24'::timestamp  AND p.AnswerCount>=0  AND p.AnswerCount<=3  AND u.Reputation>=1;

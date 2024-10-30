@@ -1,0 +1,1 @@
+select  count(*) from votes as v,  		posts as p,          users as u where v.UserId = p.OwnerUserId 	and p.OwnerUserId = u.Id  AND p.Score>=-1  AND p.Score<=71  AND u.Reputation>=1  AND v.VoteTypeId=2;
