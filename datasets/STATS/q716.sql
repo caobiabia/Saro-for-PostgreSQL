@@ -1,1 +1,0 @@
-select  count(*) from comments as c,          postHistory as ph,  		badges as b,          users as u  where u.Id = c.UserId 	and u.Id = ph.UserId 	and u.Id = b.UserId  AND ph.PostHistoryTypeId=3  AND u.CreationDate<='2014-07-30 08:19:45'::timestamp;

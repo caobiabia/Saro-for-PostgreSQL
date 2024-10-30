@@ -1,1 +1,0 @@
-select  count(*) from comments as c,          postHistory as ph,  		badges as b,          users as u  where u.Id = c.UserId 	and u.Id = ph.UserId 	and u.Id = b.UserId  AND c.Score=0  AND u.Reputation<=157  AND u.CreationDate>='2010-08-11 18:37:44'::timestamp  AND u.CreationDate<='2014-09-10 14:43:38'::timestamp;

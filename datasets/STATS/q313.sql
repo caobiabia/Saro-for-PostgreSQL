@@ -1,1 +1,0 @@
-select  count(*) from comments as c,          badges as b,         users as u where u.Id = c.UserId 	and c.UserId = b.UserId  AND c.CreationDate>='2010-07-24 06:46:49'::timestamp  AND u.Views>=0  AND u.CreationDate>='2010-08-02 20:31:12'::timestamp  AND u.CreationDate<='2014-08-20 07:19:46'::timestamp;

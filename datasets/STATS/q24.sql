@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,          posts as p,  		users as u,  		badges as b  where u.Id = p.OwnerUserId 	and p.OwnerUserId = ph.UserId 	and ph.UserId = b.UserId  AND p.PostTypeId=2  AND p.Score<=115  AND p.FavoriteCount>=0  AND u.UpVotes>=0;

@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,  		posts as p,          users as u where ph.PostId = p.Id 	and p.OwnerUserId = u.Id  AND p.Score>=-2  AND p.Score<=50  AND p.CommentCount>=0  AND p.CommentCount<=11  AND u.Reputation>=1  AND u.Reputation<=171  AND u.UpVotes>=0  AND u.UpVotes<=28  AND u.CreationDate>='2010-07-26 19:19:42'::timestamp;

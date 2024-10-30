@@ -1,1 +1,0 @@
-select  count(*) from posts as p,          tags as t,          votes as v  where p.Id = t.ExcerptPostId 	and p.OwnerUserId = v.UserId  AND p.CreationDate<='2014-09-08 21:04:34'::timestamp  AND t.Count>=1  AND v.CreationDate>='2010-07-20 00:00:00'::timestamp;

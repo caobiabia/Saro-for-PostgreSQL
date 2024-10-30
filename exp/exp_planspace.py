@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # 定义要查看的 pkl 文件路径
-pkl_file_path = r'D:\Saro\records\plans_dict_job.pkl'
+pkl_file_path = r'D:\Saro\records\plans_dict_job_test.pkl'
 # 加载 pkl 文件
 with open(pkl_file_path, 'rb') as file:
     plans_dict = pickle.load(file)
@@ -16,7 +16,7 @@ index_count = defaultdict(int)
 for sql_file, plans_list in plans_dict.items():
     if plans_list:
         exe_times = [item["time"] for item in plans_list]
-        exe_plans = [item["plan"]["Plan"] for item in plans_list]
+        exe_plans = [item["plan"] for item in plans_list]
         # 找出time列表中最小值的索引
         min_time = min(exe_times)
         # print(min_time)
@@ -49,7 +49,7 @@ plt.xticks(all_indices)  # Set x-axis ticks
 # Set y-axis to show integer values
 plt.yticks(range(0, max(all_counts) + 1))
 
-plt.grid(axis='y')
-plt.savefig('draws/hints_distribution.png', dpi=300)
+# plt.grid(axis='y')
+plt.savefig('draws/hints_distribution_JOB.png', dpi=300)
 # Show the plot
 plt.show()

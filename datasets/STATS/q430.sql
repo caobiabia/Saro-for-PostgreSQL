@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,  		postLinks as pl where  c.UserId = p.OwnerUserId 	and p.Id = pl.PostId  AND pl.LinkTypeId=1  AND p.CommentCount>=0  AND p.CreationDate>='2010-10-05 03:20:46'::timestamp;

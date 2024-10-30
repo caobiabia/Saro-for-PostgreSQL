@@ -1,1 +1,0 @@
-select  count(*) from badges as b, 		posts as p where b.UserId = p.OwnerUserId  AND p.PostTypeId=2  AND p.Score>=0  AND p.Score<=20  AND p.CommentCount<=12  AND p.CreationDate>='2010-09-05 08:36:31'::timestamp;

@@ -1,1 +1,0 @@
-select  count(*) from votes as v,          badges as b,         users as u where u.Id = v.UserId 	and v.UserId = b.UserId  AND u.Reputation<=2294  AND u.DownVotes>=0  AND u.CreationDate>='2010-11-03 03:18:12'::timestamp  AND u.CreationDate<='2014-08-31 14:38:43'::timestamp  AND v.VoteTypeId=2  AND v.BountyAmount>=0;

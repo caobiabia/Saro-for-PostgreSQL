@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,          users as u where c.UserId = u.Id 	and u.Id = p.OwnerUserId  AND c.Score=0  AND p.ViewCount>=0  AND p.ViewCount<=3392  AND p.CommentCount<=12  AND p.FavoriteCount>=0  AND p.FavoriteCount<=28  AND p.CreationDate>='2010-07-20 06:41:25'::timestamp  AND u.CreationDate<='2014-08-21 18:31:10'::timestamp;

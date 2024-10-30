@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		postLinks as pl,  		postHistory as ph,          votes as v where pl.PostId = c.PostId 	and c.PostId = ph.PostId 	and ph.PostId = v.PostId  AND c.Score=0  AND c.CreationDate>='2010-08-24 19:37:24'::timestamp  AND c.CreationDate<='2014-09-11 15:50:01'::timestamp;

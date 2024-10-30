@@ -1,1 +1,0 @@
-select  count(*) from posts as p,  		postLinks as pl,          postHistory as ph where p.Id = pl.PostId 	and pl.PostId = ph.PostId  AND pl.LinkTypeId=1  AND p.CommentCount>=0  AND p.CreationDate<='2014-08-21 21:10:55'::timestamp;

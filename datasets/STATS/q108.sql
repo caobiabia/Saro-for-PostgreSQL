@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		postHistory as ph,          votes as v,  		users as u where u.Id  = v.UserId  	and v.UserId = ph.UserId  	and ph.UserId =c.UserId  AND u.DownVotes>=0  AND v.VoteTypeId=2  AND v.BountyAmount<=50;

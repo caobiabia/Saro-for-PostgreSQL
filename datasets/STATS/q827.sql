@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,  		postLinks as pl,          postHistory as ph,          votes as v  where p.Id = c.PostId 	and p.Id = pl.PostId     and p.Id = ph.PostId     and p.Id = v.PostId  AND ph.PostHistoryTypeId=2  AND pl.CreationDate<='2014-09-07 20:45:27'::timestamp  AND p.AnswerCount>=0  AND p.AnswerCount<=4  AND v.VoteTypeId=2;

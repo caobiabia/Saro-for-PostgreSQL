@@ -1,1 +1,0 @@
-select  count(*) from comments as c,          postHistory as ph,  		badges as b,          users as u  where u.Id = c.UserId 	and u.Id = ph.UserId 	and u.Id = b.UserId  AND c.Score=0  AND ph.PostHistoryTypeId=5  AND u.Views>=0  AND u.DownVotes<=0  AND u.UpVotes>=0;

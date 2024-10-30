@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,           postHistory as ph,  		badges as b,          users as u  where u.Id = c.UserId 	and u.Id = p.LastEditorUserId 	and u.Id = ph.UserId 	and u.Id = b.UserId  AND ph.PostHistoryTypeId=1  AND p.ViewCount>=0  AND p.ViewCount<=3165  AND p.CommentCount>=0  AND p.FavoriteCount>=0  AND u.Reputation<=268  AND u.Views<=52;

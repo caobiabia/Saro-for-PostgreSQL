@@ -1,1 +1,0 @@
-select  count(*) from badges as b, 		users as u where b.UserId= u.Id  AND b.Date>='2011-01-01 00:02:44'::timestamp  AND b.Date<='2014-09-12 14:06:21'::timestamp  AND u.UpVotes>=0  AND u.CreationDate>='2010-10-04 13:31:31'::timestamp;

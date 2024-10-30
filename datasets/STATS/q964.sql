@@ -1,1 +1,0 @@
-select  count(*) from comments as c,          postLinks as pl,          posts as p,  		users as u,  		badges as b   where p.Id = pl.RelatedPostId 	and p.Id = c.PostId 	and u.Id = b.UserId 	and u.Id = p.OwnerUserId  AND pl.LinkTypeId=3  AND p.CommentCount>=0  AND p.CommentCount<=13  AND p.FavoriteCount>=0;

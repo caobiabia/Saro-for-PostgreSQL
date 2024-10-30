@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,          users as u where c.UserId = u.Id 	and u.Id = p.OwnerUserId  AND p.FavoriteCount<=5  AND u.Reputation<=450  AND u.CreationDate>='2010-11-07 13:44:49'::timestamp;

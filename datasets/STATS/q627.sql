@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,  		posts as p,          users as u where ph.PostId = p.Id 	and p.OwnerUserId = u.Id  AND p.CommentCount<=9  AND u.Reputation<=1506  AND u.Views>=0  AND u.CreationDate>='2010-09-30 22:32:03'::timestamp;

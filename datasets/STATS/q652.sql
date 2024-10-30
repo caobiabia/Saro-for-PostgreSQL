@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,  		posts as p,          users as u where ph.PostId = p.Id 	and p.OwnerUserId = u.Id  AND p.CreationDate>='2010-10-24 20:23:32'::timestamp  AND p.CreationDate<='2014-08-29 06:59:35'::timestamp  AND u.Views<=2359  AND u.CreationDate>='2010-09-12 15:52:20'::timestamp  AND u.CreationDate<='2014-09-06 05:55:49'::timestamp;

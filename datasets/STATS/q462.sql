@@ -1,1 +1,0 @@
-select  count(*) from votes as v,  		posts as p,          users as u where v.UserId = p.OwnerUserId 	and p.OwnerUserId = u.Id  AND p.CommentCount<=10  AND p.CreationDate>='2010-07-27 13:25:13'::timestamp  AND p.CreationDate<='2014-09-03 23:54:55'::timestamp  AND u.UpVotes<=270;

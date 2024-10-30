@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,          votes as v,  		users as u,  		badges as b  where u.Id = ph.UserId 	and u.Id = v.UserId 	and u.Id = b.UserId  AND b.Date>='2010-07-19 20:14:08'::timestamp  AND b.Date<='2014-08-17 20:50:42'::timestamp  AND v.BountyAmount>=0;

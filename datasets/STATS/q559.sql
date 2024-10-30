@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,          posts as p,  		votes as v,  		users as u  where p.Id = ph.PostId  	and u.Id = p.OwnerUserId 	and p.Id = v.PostId  AND p.Score<=30  AND p.CommentCount=0;

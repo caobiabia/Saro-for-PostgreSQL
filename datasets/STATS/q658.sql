@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,          votes as v,  		users as u,  		badges as b  where u.Id = ph.UserId 	and u.Id = v.UserId 	and u.Id = b.UserId  AND u.Views<=63  AND u.DownVotes>=0  AND u.DownVotes<=0  AND v.VoteTypeId=2  AND v.CreationDate<='2014-09-05 00:00:00'::timestamp;

@@ -1,1 +1,0 @@
-select  count(*) from votes as v,  		posts as p,  		badges as b,         users as u  where u.Id = v.UserId 	and u.Id = p.OwnerUserId 	and u.Id = b.UserId  AND p.ViewCount>=0  AND p.ViewCount<=1556  AND p.CommentCount<=11;

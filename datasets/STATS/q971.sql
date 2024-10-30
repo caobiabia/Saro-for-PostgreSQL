@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		postHistory as ph,          votes as v,  		users as u where u.Id  = v.UserId  	and v.UserId = ph.UserId  	and ph.UserId =c.UserId  AND c.CreationDate>='2010-08-24 16:57:58'::timestamp  AND u.Reputation<=983  AND v.CreationDate>='2010-07-19 00:00:00'::timestamp  AND v.CreationDate<='2014-09-10 00:00:00'::timestamp;

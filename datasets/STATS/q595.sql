@@ -1,1 +1,0 @@
-select  count(*) from postHistory as ph,          posts as p,  		users as u,  		badges as b  where u.Id = p.OwnerUserId 	and p.OwnerUserId = ph.UserId 	and ph.UserId = b.UserId  AND ph.PostHistoryTypeId=5  AND ph.CreationDate<='2014-09-11 15:40:30'::timestamp  AND p.PostTypeId=2  AND p.Score<=17  AND p.ViewCount<=49948  AND u.Views<=51;

@@ -1,1 +1,0 @@
-select  count(*) from comments as c,  		posts as p,  		postHistory as ph,          votes as v   where p.OwnerUserId = c.UserId 	and p.OwnerUserId = ph.UserId     and p.OwnerUserId = v.UserId  AND c.CreationDate='2012-09-17 17:22:19'::timestamp  AND p.CommentCount>=0  AND p.CommentCount<=16;

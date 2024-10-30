@@ -1,1 +1,0 @@
-select  count(*) from votes as v,  		posts as p,  		badges as b,         users as u  where u.Id = v.UserId 	and u.Id = p.OwnerUserId 	and u.Id = b.UserId  AND p.AnswerCount<=3  AND p.CommentCount>=0  AND p.CommentCount<=24  AND p.CreationDate>='2010-07-19 21:18:12'::timestamp  AND u.CreationDate>='2011-04-27 14:37:17'::timestamp;
