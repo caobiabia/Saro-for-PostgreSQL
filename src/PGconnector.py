@@ -1,5 +1,7 @@
 import json
 import time
+
+import numpy as np
 import psycopg2
 import re
 
@@ -164,6 +166,95 @@ class PostgresDB:
             return table_cardinalities
         return {}
 
+    def count_total_joins(self, sql_query):
+        # 计算显式连接数量
+        explicit_joins = re.findall(r'\bJOIN\b', sql_query, re.IGNORECASE)
+        explicit_join_count = len(explicit_joins)
+
+        # 提取所有表名，匹配如 "table_name AS alias" 或 "table_name"
+        tables = re.findall(r'(\w+)\s+AS\s+(\w+)|(\w+)', sql_query)
+
+        # 提取表名，去除 None、空字符串和 SQL 关键字
+        unique_tables = set()
+        for match in tables:
+            unique_tables.update(filter(lambda x: x and x not in {
+                'SELECT', 'FROM', 'WHERE', 'AS', 'AND', 'MIN', 'LIKE', 'character', 'movie_with_american_producer'
+            }, match))
+
+        # # 打印唯一表名
+        # print("唯一表名:", unique_tables)
+
+        # 在 WHERE 子句中查找连接条件
+        where_clause = re.search(r'WHERE(.*?);', sql_query, re.DOTALL)
+        if where_clause:
+            where_conditions = where_clause.group(1).strip()
+        else:
+            where_conditions = ''
+
+        # # 打印 WHERE 条件
+        # print("WHERE 条件:", where_conditions)
+
+        # 初始化隐式连接计数
+        implicit_join_count = 0
+        found_connections = set()
+
+        # 查找隐式连接条件
+        for table1 in unique_tables:
+            for table2 in unique_tables:
+                if table1 != table2:
+                    # 查找隐式连接条件
+                    pattern = re.compile(
+                        rf'\b{table1}\.(\w+)\s*=\s*{table2}\.(\w+)|\b{table2}\.(\w+)\s*=\s*{table1}\.(\w+)')
+                    matches = pattern.findall(where_conditions)
+                    if matches:
+                        # 只记录一次连接
+                        connection = tuple(sorted([table1, table2]))
+                        if connection not in found_connections:
+                            found_connections.add(connection)
+                            implicit_join_count += 1  # 计数加一
+                            # print(f"找到隐式连接: {table1} <-> {table2}")
+
+        # 返回显式连接数量和隐式连接数量的总和
+        total_join_count = explicit_join_count + implicit_join_count
+        return total_join_count
+
+    def extract_rows_from_plan(self, data: list):
+        """
+        从查询计划中提取 Plan Rows 数据，并返回处理后的 rows 数组。
+
+        参数:
+        - data (list): 查询计划的列表，其中每个计划是一个字典
+
+        返回:
+        - rows (np.array): 提取并取对数的 rows 数组
+        """
+        rows = []
+
+        def recurse(n):
+            # 提取当前节点的 Plan Rows
+            if "Plan Rows" in n:
+                rows.append(n["Plan Rows"])
+
+            # 递归处理子节点
+            if "Plans" in n:
+                for child in n["Plans"]:
+                    recurse(child)
+
+        # 遍历所有计划
+        for plan in data:
+            recurse(plan["Plan"])
+
+        # 将提取的行数转换为 numpy 数组并取对数
+        rows = np.array(rows)
+        return rows
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
 
 if __name__ == "__main__":
     PG_CONNECTION_STR_JOB = {
@@ -194,4 +285,3 @@ if __name__ == "__main__":
     print("exe time:", time)
     # 关闭连接
     db_job.close()
-

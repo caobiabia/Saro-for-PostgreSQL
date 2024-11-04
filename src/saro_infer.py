@@ -80,7 +80,7 @@ class Saro_infer:
     def cmp_to_pg(self):
         self.connect_db()
         start_time = time.time()
-        self.db_job.execute_query(read_sql_file(self.sql_path))
+        self.db_job.execute_query("EXPLAIN ANALYZE" + read_sql_file(self.sql_path))
         exe_time = time.time() - start_time
         self.db_job.close()
         return exe_time

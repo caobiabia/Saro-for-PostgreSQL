@@ -103,17 +103,6 @@ nestloop,seqscan'''
 all_48_hint_sets = all_48_hint_sets.split('\n')
 all_48_hint_sets = [["enable_" + j for j in i.split(',')] for i in all_48_hint_sets]
 
-# 设置日志记录
-log_dir = r"/logs"
-os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, "SQLexecute.log")
-
-logging.basicConfig(
-    filename=log_file,
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
 
 def get_hints_by_arm_idx(arm_idx):
     hints = []
@@ -131,6 +120,18 @@ def get_hints_by_arm_idx(arm_idx):
         print('48 hint set error')
         exit(0)
     return hints
+
+
+# 设置日志记录
+log_dir = r"/logs"
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "SQLexecute.log")
+
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 
 def save_plans_dict(plans_dict, file_path):
@@ -270,33 +271,24 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
         for arm in tqdm(range(processed_arms, ARMS), desc=f"Processing {file_name}", unit="arm"):
             hints = get_hints_by_arm_idx(arm)
-            plan = None
+            db_job.execute_query("BEGIN;")  # 开始新的事务
             # ---------------------获取应用提示的执行计划---------------------------
             for hint in hints:
                 try:
-                    db_job.execute_query("BEGIN;")  # 开始新的事务
                     db_job.execute_query(hint)  # 执行提示
                 except Exception as e:
                     logging.error(f"Error executing query hint: {e}")
 
             # 获取执行计划
-            try:
-                plan = db_job.get_execution_plan_from_file(file_path=sql_file)
-                if plan is None:
-                    plan = ["Plan Not Available"]  # 占位符
-                db_job.execute_query("COMMIT;")  # 提交事务
-            except Exception as e:
-                logging.error(f"Error getting execution plan: {e}")
-                plan = ["Plan Not Available"]  # 占位符
-                db_job.execute_query("ROLLBACK;")  # 回滚事务
+            plan = db_job.get_execution_plan_from_file(file_path=sql_file)
+
             # ------------------------------------------------------------------
 
             # ---------------------获取应用提示的查询执行时间-------------------------
             # 执行 SQL 文件
             start_time = time.time()  # 记录开始时间
             try:
-                db_job.execute_query("BEGIN;")  # 开始新的事务
-                db_job.execute_query("SET statement_timeout TO 300000")  # 增加超时时间
+                db_job.execute_query("SET statement_timeout TO 60000")  # 增加超时时间
                 db_job.execute_sql_file(sql_file)  # 执行 SQL 文件
                 db_job.execute_query("COMMIT;")  # 提交事务
             except Exception as e:
@@ -318,5 +310,5 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
 
 if __name__ == '__main__':
-    Mult_recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
+    recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
                              save_path=r"D:\Saro\records\plans_dict_train_JOB.pkl")
