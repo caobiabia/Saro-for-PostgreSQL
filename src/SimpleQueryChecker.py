@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.WARNING)
 
 
 class SimpleQueryChecker:
-    def __init__(self, db_instance, max_tables=3, max_joins=3, max_filter_conditions=5, max_rows=1000,
+    def __init__(self, db_instance, max_tables=7, max_joins=5, max_filter_conditions=10, max_rows=1000 * 10,
                  max_subqueries=1):
         """
         初始化简单查询检查器

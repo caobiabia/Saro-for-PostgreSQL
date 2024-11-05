@@ -118,6 +118,29 @@ class PostgresDB:
             print(f"Failed to read SQL file: {file_path}")
             return None
 
+    def get_execution_plan_with_GA(self, query):
+        if not self.connection:
+            print("No active database connection.")
+            return None
+
+        try:
+            gaqo_cfg = f"""SET geqo = on;
+                       SET geqo_threshold = 2;
+                       SET geqo_effort = 5;                       
+                       SET geqo_generations = 0;
+                       SET geqo_pool_size = 0;
+                       SET geqo_selection_bias = 2.0;
+                       SET geqo_seed = 0;"""
+            explain_query = f"EXPLAIN (FORMAT JSON) {query}"
+            with self.connection.cursor() as cursor:
+                cursor.execute(gaqo_cfg)
+                cursor.execute(explain_query)
+                execution_plan = cursor.fetchall()
+            return execution_plan[0][0] if execution_plan else None
+        except psycopg2.Error as e:
+            print(f"Error getting execution plan: {e}")
+            return None
+
     @staticmethod
     def extract_table_names(sql_query):
         # 改进正则表达式，捕获 FROM, JOIN, INTO, UPDATE 后的表名

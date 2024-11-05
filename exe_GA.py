@@ -302,7 +302,7 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
         if not db_instance.is_simple_query(read_sql_file(sql_file)):
             for arm in tqdm(range(processed_arms, ARMS), desc=f"Processing {file_name}", unit="arm"):
 
-                # print(f"{sql_file}是复杂查询")
+                print(f"{sql_file}是复杂查询")
                 hints = get_hints_by_arm_idx_and_ga(arm)
                 db_job.execute_query("BEGIN;")  # 开始新的事务
                 # ---------------------获取应用提示的执行计划---------------------------
@@ -379,5 +379,5 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
 
 if __name__ == '__main__':
-    recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
-                        save_path=r"D:\Saro\records\plans_dict_train_JOB_GA.pkl")
+    recordAndExecuteSQL(PG_CONNECTION_STR_STATS, args.fp, args.ARMS,
+                            save_path=r"D:\Saro\records\plans_dict_train_STATS_GA.pkl")
