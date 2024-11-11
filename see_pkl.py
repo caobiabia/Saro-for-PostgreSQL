@@ -68,8 +68,8 @@ for arm in tqdm(range(0, 49), unit="arm"):
     except Exception as e:
         logging.error(f"Error getting execution plan: {e}")
         db_job.execute_query("ROLLBACK;")  # 回滚事务
-print(plans)
-
+print(type(plans))
+print(len(plans))
 v_plans = pre_evaluate_process(plans)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 net = SATCNN_Extend(9).to(device)

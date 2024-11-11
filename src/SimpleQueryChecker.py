@@ -55,7 +55,6 @@ class SimpleQueryChecker:
             self.db.connect()
             plan = self.db.get_execution_plan(query)
             rows = self.db.extract_rows_from_plan(plan)
-            self.db.close()
 
             total_rows = np.sum(rows) if rows.size > 0 else 0
             logging.debug(f"扫描总行数为 {total_rows}")

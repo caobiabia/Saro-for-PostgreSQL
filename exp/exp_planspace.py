@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 # 定义要查看的 pkl 文件路径
-pkl_file_path = r'D:\Saro\records\plans_dict_test_TPCH.pkl'
+pkl_file_path = r'D:\Saro\records\plans_dict_train_JOB_GA.pkl'
 
 # 加载 pkl 文件
 with open(pkl_file_path, 'rb') as file:
@@ -47,6 +47,6 @@ plt.xticks(all_indices)  # 设置x轴刻度
 plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True, nbins=10))  # 控制Y轴刻度数量
 
 # 保存图像
-plt.savefig('draws/hints_distribution_test_TPCH.png', dpi=300)
+plt.savefig('draws/hints_distribution_train_JOB_GA.png', dpi=300)
 # 显示图像
 plt.show()

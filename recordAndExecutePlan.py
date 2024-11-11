@@ -104,7 +104,6 @@ nestloop,seqscan'''
 all_48_hint_sets = all_48_hint_sets.split('\n')
 all_48_hint_sets = [["enable_" + j for j in i.split(',')] for i in all_48_hint_sets]
 hashjoin_hints = [h for h in all_48_hint_sets if 'enable_hashjoin' in h]
-selected_hashjoin_hints = random.sample(hashjoin_hints, 24)
 
 
 def get_hints_by_arm_idx(arm_idx):
@@ -126,6 +125,7 @@ def get_hints_by_arm_idx(arm_idx):
 
 
 def get_hints_by_arm_idx_and_ga(arm_idx):
+    selected_hashjoin_hints = random.sample(hashjoin_hints, 24)
     hints = []
     for option in _ALL_OPTIONS:
         hints.append(f"SET {option} TO off")
@@ -135,7 +135,7 @@ def get_hints_by_arm_idx_and_ga(arm_idx):
             hints.append(f"SET {i} TO on")
 
     elif 24 <= arm_idx < 48:
-        for i in all_48_hint_sets[arm_idx - 24]:
+        for i in selected_hashjoin_hints[arm_idx - 24]:
             hints.append(f"SET {i} TO on")
             hints.append(f"""SET geqo = on;
                        SET geqo_threshold = 2;
@@ -160,7 +160,7 @@ log_file = os.path.join(log_dir, "SQLexecute.log")
 
 logging.basicConfig(
     filename=log_file,
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
@@ -279,8 +279,8 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
     # 创建数据库对象并连接
     db_job = PostgresDB(**DBParam)
-    db_job.connect()
     db_instance = SimpleQueryChecker(db_job)
+    db_job.connect()
     if not db_job.connection:
         logging.error("Failed to connect to the database.")
         return
@@ -300,6 +300,7 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
         processed_arms = len(plans_dict[file_name])
         if not db_instance.is_simple_query(read_sql_file(sql_file)):
+            logging.info(f"{file_name}是复杂查询")
             for arm in tqdm(range(processed_arms, ARMS), desc=f"Processing {file_name}", unit="arm"):
 
                 # print(f"{sql_file}是复杂查询")
@@ -338,6 +339,7 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
                     # 每次更新 plans_dict 后都保存到文件
                     save_plans_dict(plans_dict, save_path)
         if db_instance.is_simple_query(read_sql_file(sql_file)):
+            logging.info(f"{file_name}是简单查询")
             for arm in tqdm(range(processed_arms, ARMS), desc=f"Processing {file_name}", unit="arm"):
                 hints = get_hints_by_arm_idx(arm)
                 db_job.execute_query("BEGIN;")  # 开始新的事务
@@ -379,5 +381,5 @@ def recordAndExecuteSQL(DBParam, sqlPath, ARMS, save_path=None):
 
 
 if __name__ == '__main__':
-    recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
+    Mult_recordAndExecuteSQL(PG_CONNECTION_STR_JOB, args.fp, args.ARMS,
                         save_path=r"D:\Saro\records\plans_dict_train_JOB_GA.pkl")

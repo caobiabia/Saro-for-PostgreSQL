@@ -26,8 +26,8 @@ tree2 = (
     ((2, 9),)
 )
 
-
 trees = [tree1, tree2]
+
 
 # function to extract the left child of a node
 def left_child(x):
@@ -37,6 +37,7 @@ def left_child(x):
         return None
     return x[1]
 
+
 # function to extract the right child of node
 def right_child(x):
     assert isinstance(x, tuple)
@@ -44,6 +45,7 @@ def right_child(x):
         # leaf.
         return None
     return x[2]
+
 
 # function to transform a node into a (feature) vector,
 # should be a numpy array.

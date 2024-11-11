@@ -1,4 +1,5 @@
-# Copyright 2023 Bytedance Ltd. and/or its affiliates 
+# Copyright 2023 Bytedance Ltd. and/or its affiliates
+import pickle
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -208,7 +209,8 @@ def get_all_relations(data):
 def get_featurized_trees(data):
     all_rels = get_all_relations(data)
     stats_extractor = get_plan_stats(data)
-
+    print(all_rels)
+    print(stats_extractor)
     t = TreeBuilder(stats_extractor, all_rels)
     trees = []
 
@@ -255,3 +257,18 @@ class TreeFeaturizer:
         for t in trees:
             _attach_buf_data(t)
         return [self.__tree_builder.plan_to_feature_tree(x["Plan"]) for x in trees]
+
+
+if __name__ == '__main__':
+    pkl_file_path = r'D:\Saro\records\plans_dict_train_JOB.pkl'
+    # 加载 pkl 文件
+    with open(pkl_file_path, 'rb') as file:
+        plans_dict = pickle.load(file)
+    sql_file = "q222"
+    x = []  # [{plan1},{plan2}...]
+    if sql_file in plans_dict and plans_dict[sql_file]:
+        exe_times = [item["time"] for item in plans_dict[sql_file]]
+        plans = [item["plan"] for item in plans_dict[sql_file]]
+        plan = [plans[0]]
+        print(plan)
+        f_plan = get_featurized_trees(plan)
